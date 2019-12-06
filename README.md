@@ -3,6 +3,7 @@
 * Clonar o repossitório do jeliel em que ele colocou tudo.
 * Clona o repositório no frontend do cesar e vai ao branch adaptacao:
 > git clone https://github.com/ICC453/frontend
+
 > git checkout adaptacao
 
 * No frontend, no index.html coloca:
@@ -14,7 +15,9 @@
   * Senha: 
 * Executar na pasta sdk:
 > npm i
+ 
 > npm run compile1
+
 > npm run compile2
 
 ## Sobre o trabalho
@@ -30,5 +33,7 @@
 # Servidor para API:
 * Clonar o repositório do backend e rodar:
 > npm install
+
 > tsc
+
 > node dist/main.js
