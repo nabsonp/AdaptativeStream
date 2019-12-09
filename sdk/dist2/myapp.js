@@ -34,8 +34,8 @@ CredentialManager.login(email, password).then(({ token })=>{
 
 // Adaptation Strategy
 evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
-	
-	var buffer = tempoAtual - startBuffer;
+
+	var buffer = endBuffer - tempoAtual;
 	var i = 0
 
 	if (currentBandwidth < 1000000) {
@@ -62,10 +62,11 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	}
 
 	// Se o vídeo estiver perto do limite, diminui a qualidade para receber mais frames em menos espaço
-	if (buffer > 0 && buffer < 5) {
+	if (buffer > 0 && buffer < 3) {
 		if (i > 1) i = i - 2
+		else if (i > 0) i = i - 1
 	} else {
-		if (buffer < 10) {
+		if (buffer < 5) {
 			if (i > 0) i = i - 1
 		}
 	}
@@ -77,7 +78,7 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 function initApp() {
 	// Install built-in polyfills to patch browser incompatibilities.
 	shaka.polyfill.installAll();
-	
+
 	// Check to see if the browser supports the basic APIs Shaka needs.
 	if (shaka.Player.isBrowserSupported()) {
 		// Everything looks good!
@@ -92,28 +93,28 @@ function initPlayer() {
 	// Create a Player instance.
 	var video = document.getElementById('video');
 	var player = new shaka.Player(video);
-	
+
 	// Attach player to the window to make it easy to access in the JS console.
 	window.player = player;
 	// Attach evaluator to player to manage useful variables
 	player.evaluator = evaluator;
-	
-	
+
+
 	// create a timer
 	timer = new shaka.util.Timer(onTimeCollectStats)
 	//stats = new shaka.util.Stats(video)
-	
-	
+
+
 	video.addEventListener('ended', onPlayerEndedEvent)
 	video.addEventListener('play', onPlayerPlayEvent)
 	video.addEventListener('pause', onPlayerPauseEvent)
 	video.addEventListener('progress', onPlayerProgressEvent)
-	
+
 	// // Listen for error events.
 	player.addEventListener('error', onErrorEvent);
 	// player.addEventListener('onstatechange',onStateChangeEvent);
 	// player.addEventListener('buffering', onBufferingEvent);
-	
+
 	// configure player: see https://github.com/google/shaka-player/blob/master/docs/tutorials/config.md
 	player.configure({
 		abr: {
@@ -151,7 +152,7 @@ function initPlayer() {
 		const selectedTrack = evaluator.evaluate(tracks, currentBandwidth,startBuffer,endBuffer)
 
 		evaluator.currentTrack = selectedTrack
-		
+
 		console.log('options: ', tracks)
 		console.log('selected: ', evaluator.currentTrack);
 		this.lastTimeChosenMs_ = Date.now();
@@ -178,21 +179,21 @@ function onPlayerEndedEvent(ended) {
 function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
 	if(logger){
-		logger.info('Video play hit', play); 
+		logger.info('Video play hit', play);
 	}
 }
 
 function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
 	if(logger){
-		logger.info('Video pause hit', pause); 
+		logger.info('Video pause hit', pause);
 	}
 }
 
 function onPlayerProgressEvent(event) {
 	console.log('Progress Event: ', event);
 	if(logger){
-		logger.info('Progress Event', event); 
+		logger.info('Progress Event', event);
 	}
 	tempoAtual = event.path[0].currentTime;
 }
