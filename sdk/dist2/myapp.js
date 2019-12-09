@@ -1,6 +1,8 @@
 
 
 // myapp.js
+var historico[5] = {0,0,0,0,0}
+var cont = 0
 var stats;
 var timer;
 var tempoAtual = 0;
@@ -33,29 +35,86 @@ CredentialManager.login(email, password).then(({ token })=>{
 });
 
 // Adaptation Strategy
-evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
+evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer, algorithm) => {
 
 	var buffer = endBuffer - tempoAtual;
 	var i = 0
 
-	if (currentBandwidth < 1000000) {
-		i = 0
-		console.warn('VIDEO COM QUALIDADE 0',currentBandwidth);
-	} else {
-		if (currentBandwidth < 5000000) {
-			i = 1
-			console.warn('VIDEO COM QUALIDADE 1',currentBandwidth);
+	if (algorithm == 0) {
+		if (currentBandwidth < 1000000) {
+			i = 0
+			console.warn('VIDEO COM QUALIDADE 0',currentBandwidth);
 		} else {
-			if (currentBandwidth < 10000000) {
-				i = 2
-				console.warn('VIDEO COM QUALIDADE 2',currentBandwidth);
+			if (currentBandwidth < 5000000) {
+				i = 1
+				console.warn('VIDEO COM QUALIDADE 1',currentBandwidth);
 			} else {
-				if (currentBandwidth < 15000000) {
-					i = 3
-					console.warn('VIDEO COM QUALIDADE 3',currentBandwidth);
+				if (currentBandwidth < 10000000) {
+					i = 2
+					console.warn('VIDEO COM QUALIDADE 2',currentBandwidth);
 				} else {
-					i = 4
-					console.warn('VIDEO COM QUALIDADE 4',currentBandwidth);
+					if (currentBandwidth < 15000000) {
+						i = 3
+						console.warn('VIDEO COM QUALIDADE 3',currentBandwidth);
+					} else {
+						i = 4
+						console.warn('VIDEO COM QUALIDADE 4',currentBandwidth);
+					}
+				}
+			}
+		}
+	} else {
+		var media = 0;
+		if (cont== 5) cont = 0
+		historico[cont] = currentBandwidth
+		for(var i=0; i<=cont; i++) media += historico[i]
+		media = media/(++cont);
+
+		if (algorithm == 1) {
+			if (media < 1000000) {
+				i = 0
+				console.warn('VIDEO COM QUALIDADE 0',media);
+			} else {
+				if (media < 5000000) {
+					i = 1
+					console.warn('VIDEO COM QUALIDADE 1',media);
+				} else {
+					if (media < 10000000) {
+						i = 2
+						console.warn('VIDEO COM QUALIDADE 2',media);
+					} else {
+						if (media < 15000000) {
+							i = 3
+							console.warn('VIDEO COM QUALIDADE 3',media);
+						} else {
+							i = 4
+							console.warn('VIDEO COM QUALIDADE 4',media);
+						}
+					}
+				}
+			}
+		} else {
+			// Depende do tamanho do vídeo
+			if (media < 1000000) {
+				i = 0
+				console.warn('VIDEO COM QUALIDADE 0',media);
+			} else {
+				if (media < 5000000) {
+					i = 1
+					console.warn('VIDEO COM QUALIDADE 1',media);
+				} else {
+					if (media < 10000000) {
+						i = 2
+						console.warn('VIDEO COM QUALIDADE 2',media);
+					} else {
+						if (media < 15000000) {
+							i = 3
+							console.warn('VIDEO COM QUALIDADE 3',media);
+						} else {
+							i = 4
+							console.warn('VIDEO COM QUALIDADE 4',media);
+						}
+					}
 				}
 			}
 		}
@@ -149,7 +208,7 @@ function initPlayer() {
 			endBuffer = video.buffered.end(0)
 			console.warn('Buffer range: [', startBuffer, ',', endBuffer,'].');
 		}
-		const selectedTrack = evaluator.evaluate(tracks, currentBandwidth,startBuffer,endBuffer)
+		const selectedTrack = evaluator.evaluate(tracks, currentBandwidth,startBuffer,endBuffer,1)
 
 		evaluator.currentTrack = selectedTrack
 
