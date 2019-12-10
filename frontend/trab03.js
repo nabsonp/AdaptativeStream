@@ -10,8 +10,6 @@ exports.environment = {
 
 // myapp.js
 var historico = []
-var cont = 0
-var prim = 0
 var quali = 0
 var stats;
 var timer;
@@ -47,10 +45,36 @@ CredentialManager.login(email, password).then(({ token })=>{
 // Adaptation Strategy
 evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 
-	var buffer = endBuffer - tempoAtual;
-
+	var buffer = (endBuffer - tempoAtual)/(endBuffer - startBuffer);
 	var media = 0;
 	var dp = 0
+
+	if (historico.length == 0) {
+		if (currentBandwidth < 1000000) {
+			i = 0
+			console.warn('VIDEO COM QUALIDADE 0',currentBandwidth);
+		} else {
+			if (currentBandwidth < 5000000) {
+				i = 1
+				console.warn('VIDEO COM QUALIDADE 1',currentBandwidth);
+			} else {
+				if (currentBandwidth < 10000000) {
+					i = 2
+					console.warn('VIDEO COM QUALIDADE 2',currentBandwidth);
+				} else {
+					if (currentBandwidth < 15000000) {
+						i = 3
+						console.warn('VIDEO COM QUALIDADE 3',currentBandwidth);
+					} else {
+						i = 4
+						console.warn('VIDEO COM QUALIDADE 4',currentBandwidth);
+					}
+				}
+			}
+		}
+	}
+
+
 	if (historico.length < 5) {
 		historico.push(currentBandwidth)
 	} else {
@@ -59,17 +83,21 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	}
 
 	var t = historico.length
-	historico.push(currentBandwidth)
+
+	// Calculando a média
 	for(var i=0; i<t; i++) media += historico[i]
 	media = media/t;
-	for(var i=0; i<=t; i++) dp += Math.pow(historico[i] - media,2)
-	dp = dp/t;
+
+	// Calculando o Desvio Padrão
+	for(var i=0; i<t; i++) dp += Math.pow(historico[i] - media,2)
+	dp = dp/(t-1);
 	dp = Math.sqrt(dp)
 
-	if (currentBandwidth > media + dp) {
+	// Analisa se a banda está dentro do intervalo da Media +- DP
+	if (currentBandwidth > media + dp && quali < 5) {
 		quali++;
 	} else {
-		if (currentBandwidth < media - dp) {
+		if (currentBandwidth < media - dp && quali > 0) {
 			quali--;
 		}
 	}
@@ -78,16 +106,17 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	console.warn('INTERVALO [',media-dp,',',media+dp,']');
 
 	// Se o vídeo estiver perto do limite, diminui a qualidade para receber mais frames em menos espaço
-	if (buffer > 0 && buffer < 3) {
+	if (buffer > 0 && buffer < 0.1) {
 		if (quali > 1) quali = quali - 2
 		else if (quali > 0) quali = quali - 1
 	} else {
-		if (buffer < 5) {
+		if (buffer < 0.2) {
 			if (quali > 0) quali = quali - 1
 		}
 	}
-	console.warn('Buffer range: [', startBuffer, ',', endBuffer,'].');
-	console.warn('TempoAtual: ',tempoAtual);
+	console.warn('BUFFER RANGE: [', startBuffer, ',', endBuffer,'].');
+	console.warn('TEMPO ATUAL: ',tempoAtual);
+	console.warn('BUFFER USADO: ',buffer);
 
 	selected = tracks[quali]
 	return selected
@@ -157,11 +186,9 @@ function initPlayer() {
 			this.config_.defaultBandwidthEstimate);
 
 
-		console.log('tracks: ', this.variants_)
-
 		var startBuffer = -1
 		var endBuffer = -1
-		console.warn(video.buffered);
+		console.warn('BUFFER:',video.buffered)
 		if(video.buffered.length > 0){
 			startBuffer = video.buffered.start(0);
 			endBuffer = video.buffered.end(0)
@@ -170,8 +197,8 @@ function initPlayer() {
 
 		evaluator.currentTrack = selectedTrack
 
-		console.log('options: ', tracks)
-		console.log('selected: ', evaluator.currentTrack);
+		console.log('OPTIONS: ', tracks)
+		console.log('SELECTED: ', evaluator.currentTrack);
 		this.lastTimeChosenMs_ = Date.now();
 		return evaluator.currentTrack;
 	}
