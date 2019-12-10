@@ -6,6 +6,7 @@ var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
+var rtt = 0
 var manifestUri = 'http://rdmedia.bbc.co.uk/dash/ondemand/elephants_dream/1/client_manifest-all.mpd';
 // var manifestUri = 'https://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd';
 
@@ -21,8 +22,8 @@ const { Logger } = require('./src/logger');
 const { Event } = require('./src/event');
 const { CredentialManager } = require('./src/credential');
 
-const email = 'icc453@icomp';
-const password = 'icc453';
+const email = 'icc453@icomp'; //nabson.paiva@icomp
+const password = 'batman'; //1nabson.paiva2
 let logger;
 let econtrols;
 let emedia;
@@ -42,11 +43,25 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	var dp = 0
 
 	/*
-	var tamSegmento
-	var taxa = tamSegmento/currentBand
-	
+	var tamSegmentoMs
+	var taxa = rtt/tamSegmentoMs
+	if (taxa < 0.2) {
+		if (quali > 0) quali = 4
+		else quali+=3
+	} else {
+		if (quali < 0.5) {
+			if (quali > 1) quali = 4
+			else quali += 2
+		} else {
+			if (quali < 0.75) {
+				if (quali > 2) quali = 4
+				else quali++
+			} else {
+				if (quali > 0) quali--
+			}
+		}
+	}
 	*/
-
 
 	if (historico.length < 5) {
 		historico.push(currentBandwidth)
@@ -174,6 +189,10 @@ function initPlayer() {
 		console.log('SELECTED: ', evaluator.currentTrack);
 		this.lastTimeChosenMs_ = Date.now();
 		return evaluator.currentTrack;
+	}
+
+	shaka.abr.SimpleAbrManager.prototype.segmentDownloaded = function(deltaTimeMs, numBytes) {
+		rtt = deltaTimeMs
 	}
 
 	// Try to load a manifest.
