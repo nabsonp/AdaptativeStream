@@ -10,7 +10,7 @@ exports.environment = {
 
 // myapp.js
 var historico = []
-var quali = 0
+var quali = 4
 var stats;
 var timer;
 var tempoAtual = 0;

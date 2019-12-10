@@ -2,7 +2,7 @@
 
 // myapp.js
 var historico = []
-var quali = 4
+var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
@@ -21,8 +21,8 @@ const { Logger } = require('./src/logger');
 const { Event } = require('./src/event');
 const { CredentialManager } = require('./src/credential');
 
-const email = 'nabson.paiva@icomp';
-const password = '1nabson.paiva2';
+const email = 'icc453@icomp';
+const password = 'icc453';
 let logger;
 let econtrols;
 let emedia;
@@ -41,30 +41,11 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	var media = 0;
 	var dp = 0
 
-	if (historico.length == 0) {
-		if (currentBandwidth < 1000000) {
-			i = 0
-			console.warn('VIDEO COM QUALIDADE 0',currentBandwidth);
-		} else {
-			if (currentBandwidth < 5000000) {
-				i = 1
-				console.warn('VIDEO COM QUALIDADE 1',currentBandwidth);
-			} else {
-				if (currentBandwidth < 10000000) {
-					i = 2
-					console.warn('VIDEO COM QUALIDADE 2',currentBandwidth);
-				} else {
-					if (currentBandwidth < 15000000) {
-						i = 3
-						console.warn('VIDEO COM QUALIDADE 3',currentBandwidth);
-					} else {
-						i = 4
-						console.warn('VIDEO COM QUALIDADE 4',currentBandwidth);
-					}
-				}
-			}
-		}
-	}
+	/*
+	var tamSegmento
+	var taxa = tamSegmento/currentBand
+	
+	*/
 
 
 	if (historico.length < 5) {
