@@ -9,8 +9,10 @@ exports.environment = {
 
 
 // myapp.js
-var historico = {0:0,0:0,0:0,0:0,0:0}
+var historico = []
 var cont = 0
+var prim = 0
+var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
@@ -43,76 +45,51 @@ CredentialManager.login(email, password).then(({ token })=>{
 });
 
 // Adaptation Strategy
-evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer, algorithm) => {
+evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 
 	var buffer = endBuffer - tempoAtual;
-	var i = 0
 
-	if (algorithm == 0) {
-		if (currentBandwidth < 1000000) {
-			i = 0
-			console.warn('VIDEO COM QUALIDADE 0',currentBandwidth);
-		} else {
-			if (currentBandwidth < 5000000) {
-				i = 1
-				console.warn('VIDEO COM QUALIDADE 1',currentBandwidth);
-			} else {
-				if (currentBandwidth < 10000000) {
-					i = 2
-					console.warn('VIDEO COM QUALIDADE 2',currentBandwidth);
-				} else {
-					if (currentBandwidth < 15000000) {
-						i = 3
-						console.warn('VIDEO COM QUALIDADE 3',currentBandwidth);
-					} else {
-						i = 4
-						console.warn('VIDEO COM QUALIDADE 4',currentBandwidth);
-					}
-				}
-			}
-		}
+	var media = 0;
+	var dp = 0
+	if (historico.length < 5) {
+		historico.push(currentBandwidth)
 	} else {
-		var media = 0;
-		if (cont== 5) cont = 0
-		historico[cont] = currentBandwidth
-		for(var i=0; i<=cont; i++) media += historico[i]
-		media = media/(++cont);
-		if (media < 1000000) {
-			i = 0
-			console.warn('VIDEO COM QUALIDADE 0',media);
-		} else {
-			if (media < 5000000) {
-				i = 1
-				console.warn('VIDEO COM QUALIDADE 1',media);
-			} else {
-				if (media < 10000000) {
-					i = 2
-					console.warn('VIDEO COM QUALIDADE 2',media);
-				} else {
-					if (media < 15000000) {
-						i = 3
-						console.warn('VIDEO COM QUALIDADE 3',media);
-					} else {
-						i = 4
-						console.warn('VIDEO COM QUALIDADE 4',media);
-					}
-				}
-			}
+		historico.shift()
+		historico.push(currentBandwidth)
+	}
+
+	var t = historico.length
+	historico.push(currentBandwidth)
+	for(var i=0; i<t; i++) media += historico[i]
+	media = media/t;
+	for(var i=0; i<=t; i++) dp += Math.pow(historico[i] - media,2)
+	dp = dp/t;
+	dp = Math.sqrt(dp)
+
+	if (currentBandwidth > media + dp) {
+		quali++;
+	} else {
+		if (currentBandwidth < media - dp) {
+			quali--;
 		}
 	}
-		
+	console.warn('VIDEO COM QUALIDADE',quali);
+	console.warn('BANDA ATUAL',currentBandwidth);
+	console.warn('INTERVALO [',media-dp,',',media+dp,']');
 
 	// Se o vídeo estiver perto do limite, diminui a qualidade para receber mais frames em menos espaço
 	if (buffer > 0 && buffer < 3) {
-		if (i > 1) i = i - 2
-		else if (i > 0) i = i - 1
+		if (quali > 1) quali = quali - 2
+		else if (quali > 0) quali = quali - 1
 	} else {
 		if (buffer < 5) {
-			if (i > 0) i = i - 1
+			if (quali > 0) quali = quali - 1
 		}
 	}
+	console.warn('Buffer range: [', startBuffer, ',', endBuffer,'].');
+	console.warn('TempoAtual: ',tempoAtual);
 
-	selected = tracks[i]
+	selected = tracks[quali]
 	return selected
 }
 
@@ -188,9 +165,8 @@ function initPlayer() {
 		if(video.buffered.length > 0){
 			startBuffer = video.buffered.start(0);
 			endBuffer = video.buffered.end(0)
-			console.warn('Buffer range: [', startBuffer, ',', endBuffer,'].');
 		}
-		const selectedTrack = evaluator.evaluate(tracks, currentBandwidth,startBuffer,endBuffer,1)
+		const selectedTrack = evaluator.evaluate(tracks, currentBandwidth,startBuffer,endBuffer)
 
 		evaluator.currentTrack = selectedTrack
 
