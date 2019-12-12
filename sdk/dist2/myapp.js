@@ -6,7 +6,9 @@ var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
+var tempoAnt = 0;
 var rtt = 0
+var endBufferAnt = -1
 var manifestUri = 'http://rdmedia.bbc.co.uk/dash/ondemand/elephants_dream/1/client_manifest-all.mpd';
 // var manifestUri = 'https://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd';
 
@@ -42,46 +44,45 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	var media = 0;
 	var dp = 0
 
-	/*
-	var tamSegmentoMs
-	var taxa = rtt/tamSegmentoMs
-	if (taxa < 0.2) {
-		if (quali > 0) quali = 4
-		else quali+=3
-	} else {
-		if (quali < 0.5) {
-			if (quali > 1) quali = 4
-			else quali += 2
+	// Analisa SE O VÍDEO ESTÁ CORRENDO MAIS QUE CARREGANDO
+	if (endBufferAnt != -1) {
+		var taxa = (tempoAtual-tempoAnt)/(endBuffer - endBufferAnt)
+		if (taxa < 0.2) {
+			if (quali > 0) quali = 4
+			else quali+=3
 		} else {
-			if (quali < 0.75) {
-				if (quali > 2) quali = 4
-				else quali++
+			if (quali < 0.5) {
+				if (quali > 1) quali = 4
+				else quali += 2
 			} else {
-				if (quali > 0) quali--
+				if (quali < 0.75) {
+					if (quali > 2) quali = 4
+					else quali++
+				} else {
+					if (quali > 0) quali--
+				}
 			}
 		}
+		console.warn('TAXA DE CONSUMO',taxa);
 	}
-	*/
 
+	/*
+	// ANALISA SE A REDE ESTÁ INSTÁVEL
 	if (historico.length < 5) {
 		historico.push(currentBandwidth)
 	} else {
 		historico.shift()
 		historico.push(currentBandwidth)
 	}
-
 	var t = historico.length
-
 	// Calculando a média
 	for(var i=0; i<t; i++) media += historico[i]
 	media = media/t;
-
 	// Calculando o Desvio Padrão
 	for(var i=0; i<t; i++) dp += Math.pow(historico[i] - media,2)
 	dp = dp/(t-1);
 	dp = Math.sqrt(dp)
-
-	// Analisa se a banda está dentro do intervalo da Media +- DP
+	// Confere se a banda está dentro do intervalo da Media +- DP
 	if (currentBandwidth > media + dp && quali < 5) {
 		quali++;
 	} else {
@@ -89,11 +90,11 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 			quali--;
 		}
 	}
-	console.warn('VIDEO COM QUALIDADE',quali);
 	console.warn('BANDA ATUAL',currentBandwidth);
 	console.warn('INTERVALO [',media-dp,',',media+dp,']');
+	*/
 
-	// Se o vídeo estiver perto do limite, diminui a qualidade para receber mais frames em menos espaço
+	// ANALISA O QUANTO DO BUFFER JÁ FOI BAIXADO
 	if (buffer > 0 && buffer < 0.1) {
 		if (quali > 1) quali = quali - 2
 		else if (quali > 0) quali = quali - 1
@@ -107,6 +108,8 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	console.warn('BUFFER USADO: ',buffer);
 
 	selected = tracks[quali]
+	endBufferAnt = endBuffer
+	console.warn('VIDEO COM QUALIDADE',quali);
 	return selected
 }
 
@@ -191,10 +194,6 @@ function initPlayer() {
 		return evaluator.currentTrack;
 	}
 
-	shaka.abr.SimpleAbrManager.prototype.segmentDownloaded = function(deltaTimeMs, numBytes) {
-		rtt = deltaTimeMs
-	}
-
 	// Try to load a manifest.
 	// This is an asynchronous process.
 	player.load(manifestUri).then(function() {
@@ -231,6 +230,7 @@ function onPlayerProgressEvent(event) {
 	if(logger){
 		logger.info('Progress Event', event);
 	}
+	tempoAnt = tempoAtual
 	tempoAtual = event.path[0].currentTime;
 }
 
