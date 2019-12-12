@@ -38,12 +38,24 @@ let logger;
 let econtrols;
 let emedia;
 
-CredentialManager.login(email, password).then(({ token })=>{
-	logger = new Logger(email, token);
-	logger.
-	econtrols = new Event();
-	emedia = new Event();
-});
+	CredentialManager.login(email, password).then(({ token })=>{
+		var sessionID = credential.token
+	    logger = new Log.Logger(email,sessionID)
+	    econtrols = new Event.Event()
+	    emedia = new Event.Event()
+	    console.log(token)
+	    console.error('TA RODANDO ESSA BAGACA')
+	    econtrols.push(nome,tempo,evento)
+	  //   	logger.info("Viewer:player-controls", econtrols.dump() )
+	  //   try{
+	  //   	econtrols.push(nome,tempo,evento)
+	  //   	logger.info("Viewer:player-controls", econtrols.dump() )
+			// logger.info("Media:tracking", emedia.dump() )
+	  //   }catch(err){
+	  //     console.error(err)
+	  //   }
+
+	});
 
 // Adaptation Strategy
 evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
@@ -245,7 +257,7 @@ function onPlayerProgressEvent(event) {
 		logger.info('Progress Event', event);
 	}
 	tempoAnt = tempoAtual
-	tempoAtual = event.path[0].currentTime;
+	tempoAtual = event.path[0].currentTime; 
 }
 
 function onErrorEvent(event) {

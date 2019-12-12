@@ -31,10 +31,10 @@ let econtrols;
 let emedia;
 
 CredentialManager.login(email, password).then(({ token })=>{
-	logger = new Logger(email, token);
-	logger.
-	econtrols = new Event();
-	emedia = new Event();
+	var sessionID = credential.token
+    logger = new Log.Logger(email,sessionID)
+    econtrols = new Event.Event()
+    emedia = new Event.Event()
 });
 
 // Adaptation Strategy
@@ -202,18 +202,26 @@ function initPlayer() {
 	}).catch(onError);  // onError is executed if the asynchronous load fails.
 }
 
+function wrapup(){
+  logger.info("Viewer:player-controls", econtrols.dump() )
+  logger.info("Media:tracking", emedia.dump() )
+}
+
 function onPlayerEndedEvent(ended) {
 	console.log('Video playback ended', ended);
 	if(logger){
 		logger.info('Video playback ended', ended);
+		// econtrols.push('ended',document.getElementById('video').currentTime)
 	}
 	timer.stop();
+	// wrapup()
 }
 
 function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
 	if(logger){
 		logger.info('Video play hit', play);
+		// econtrols.push('play',document.getElementById('video').currentTime)
 	}
 }
 
@@ -221,6 +229,7 @@ function onStallEvent(stall){
 	console.error('Video stalled.', stall);
 	if(logger){
 		logger.info('Video stalled', stall);
+		// emedia.push('stall',document.getElementById('video').currentTime)
 	}
 }
 
@@ -228,6 +237,7 @@ function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
 	if(logger){
 		logger.info('Video pause hit', pause);
+		// econtrols.push('ended',document.getElementById('video').currentTime)
 	}
 }
 
@@ -235,14 +245,19 @@ function onPlayerProgressEvent(event) {
 	console.log('Progress Event: ', event);
 	if(logger){
 		logger.info('Progress Event', event);
+		// emedia.push('ended',document.getElementById('video').currentTime)
 	}
 	tempoAnt = tempoAtual
-	tempoAtual = event.path[0].currentTime;
+	tempoAtual = event.path[0].currentTime; 
 }
 
 function onErrorEvent(event) {
 	// Extract the shaka.util.Error object from the event.
 	onError(event.detail);
+	if(logger){
+		logger.info('Error', event);
+		// emedia.push('error',document.getElementById('video').currentTime)
+	}
 }
 
 function onError(error) {
