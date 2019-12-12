@@ -42,6 +42,7 @@ CredentialManager.login(email, password).then(({ token })=>{
     logger = new Log.Logger(email,token)
     econtrols = new Event.Event()
     emedia = new Event.Event()
+    console.log("FOIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
 }).catch(error=>{
     console.error('Falha ao logar.')
     throw error
@@ -103,11 +104,11 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	console.warn('BAND RANGE [',media-dp,',',media+dp,']');
 
 	// ANALISA O QUANTO DO BUFFER JÁ FOI BAIXADO
-	if (buffer > 0 && buffer < 0.1) {
+	if (buffer > 0 && buffer < 0.2) {
 		if (quali > 1) quali = quali - 2
 		else if (quali > 0) quali = quali - 1
 	} else {
-		if (buffer < 0.2) {
+		if (buffer < 0.3) {
 			if (quali > 0) quali = quali - 1
 		}
 	}
@@ -220,42 +221,42 @@ function wrapup(){
 function onPlayerEndedEvent(ended) {
 	console.log('Video playback ended', ended);
 	if(logger){
-		logger.info('Video playback ended', ended);
-		// econtrols.push('ended',document.getElementById('video').currentTime)
+		// logger.info('Video playback ended', ended);
+		econtrols.push('ended',document.getElementById('video').currentTime)
 	}
 	timer.stop();
-	// wrapup()
+	wrapup()
 }
 
 function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
 	if(logger){
-		logger.info('Video play hit', play);
-		// econtrols.push('play',document.getElementById('video').currentTime)
+		// logger.info('Video play hit', play);
+		econtrols.push('play',document.getElementById('video').currentTime)
 	}
 }
 
 function onStallEvent(stall){
 	console.error('Video stalled.', stall);
 	if(logger){
-		logger.info('Video stalled', stall);
-		// emedia.push('stall',document.getElementById('video').currentTime)
+		// logger.info('Video stalled', stall);
+		emedia.push('stall',document.getElementById('video').currentTime)
 	}
 }
 
 function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
 	if(logger){
-		logger.info('Video pause hit', pause);
-		// econtrols.push('ended',document.getElementById('video').currentTime)
+		// logger.info('Video pause hit', pause);
+		econtrols.push('ended',document.getElementById('video').currentTime)
 	}
 }
 
 function onPlayerProgressEvent(event) {
 	console.log('Progress Event: ', event);
 	if(logger){
-		logger.info('Progress Event', event);
-		// emedia.push('ended',document.getElementById('video').currentTime)
+		// logger.info('Progress Event', event);
+		emedia.push('ended',document.getElementById('video').currentTime)
 	}
 	tempoAnt = tempoAtual
 	tempoAtual = event.path[0].currentTime; 
