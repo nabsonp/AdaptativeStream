@@ -31,11 +31,13 @@ let econtrols;
 let emedia;
 
 CredentialManager.login(email, password).then(({ token })=>{
-	var sessionID = credential.token
-    logger = new Log.Logger(email,sessionID)
+    logger = new Log.Logger(email,token)
     econtrols = new Event.Event()
     emedia = new Event.Event()
-});
+}).catch(error=>{
+    console.error('Falha ao logar.')
+    throw error
+})
 
 // Adaptation Strategy
 evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
