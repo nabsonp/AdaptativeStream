@@ -74,9 +74,8 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 		console.warn('TAXA DE CONSUMO',taxa);
 	}
 
-	/*
 	// ANALISA SE A REDE ESTÁ INSTÁVEL
-	if (historico.length < 5) {
+	if (historico.length < 10) {
 		historico.push(currentBandwidth)
 	} else {
 		historico.shift()
@@ -91,7 +90,7 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	dp = dp/(t-1);
 	dp = Math.sqrt(dp)
 	// Confere se a banda está dentro do intervalo da Media +- DP
-	if (currentBandwidth > media + dp && quali < 5) {
+	if (currentBandwidth > media + dp && quali < 4) {
 		quali++;
 	} else {
 		if (currentBandwidth < media - dp && quali > 0) {
@@ -99,8 +98,7 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 		}
 	}
 	console.warn('BANDA ATUAL',currentBandwidth);
-	console.warn('INTERVALO [',media-dp,',',media+dp,']');
-	*/
+	console.warn('BAND RANGE [',media-dp,',',media+dp,']');
 
 	// ANALISA O QUANTO DO BUFFER JÁ FOI BAIXADO
 	if (buffer > 0 && buffer < 0.1) {
@@ -111,9 +109,9 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 			if (quali > 0) quali = quali - 1
 		}
 	}
-	console.warn('BUFFER RANGE: [', startBuffer, ',', endBuffer,'].');
+	console.warn('BUFFER CARREGADO: ',buffer);
 	console.warn('TEMPO ATUAL: ',tempoAtual);
-	console.warn('BUFFER USADO: ',buffer);
+	console.warn('BUFFER RANGE: [', startBuffer, ',', endBuffer,'].');
 
 	selected = tracks[quali]
 	endBufferAnt = endBuffer
@@ -155,6 +153,7 @@ function initPlayer() {
 	video.addEventListener('play', onPlayerPlayEvent)
 	video.addEventListener('pause', onPlayerPauseEvent)
 	video.addEventListener('progress', onPlayerProgressEvent)
+	video.addEventListener('stalled', onStallEvent);
 
 	// // Listen for error events.
 	player.addEventListener('error', onErrorEvent);
@@ -187,7 +186,7 @@ function initPlayer() {
 
 		var startBuffer = -1
 		var endBuffer = -1
-		console.warn('BUFFER:',video.buffered)
+		// console.warn('BUFFER:',video.buffered)
 		if(video.buffered.length > 0){
 			startBuffer = video.buffered.start(0);
 			endBuffer = video.buffered.end(0)
@@ -223,6 +222,13 @@ function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
 	if(logger){
 		logger.info('Video play hit', play);
+	}
+}
+
+function onStallEvent(stall){
+	console.error('Video stalled.', stall);
+	if(logger){
+		logger.info('Video stalled', stall);
 	}
 }
 
