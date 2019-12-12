@@ -42,7 +42,7 @@ CredentialManager.login(email, password).then(({ token })=>{
     logger = new Log.Logger(email,token)
     econtrols = new Event.Event()
     emedia = new Event.Event()
-    console.log("FOIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII");
+    console.log("Login realizado com sucesso.");
 }).catch(error=>{
     console.error('Falha ao logar.')
     throw error
@@ -220,41 +220,36 @@ function wrapup(){
 
 function onPlayerEndedEvent(ended) {
 	console.log('Video playback ended', ended);
-	if(logger){
-		// logger.info('Video playback ended', ended);
+	if(econtrols && logger){
 		econtrols.push('ended',document.getElementById('video').currentTime)
+		wrapup()
 	}
-	timer.stop();
-	wrapup()
 }
 
 function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
-	if(logger){
-		// logger.info('Video play hit', play);
+	if(econtrols){
 		econtrols.push('play',document.getElementById('video').currentTime)
 	}
 }
 
 function onStallEvent(stall){
 	console.error('Video stalled.', stall);
-	if(logger){
-		// logger.info('Video stalled', stall);
+	if(emedia){
 		emedia.push('stall',document.getElementById('video').currentTime)
 	}
 }
 
 function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
-	if(logger){
-		// logger.info('Video pause hit', pause);
+	if(econtrols){
 		econtrols.push('ended',document.getElementById('video').currentTime)
 	}
 }
 
 function onPlayerProgressEvent(event) {
 	console.log('Progress Event: ', event);
-	if(logger){
+	if(emedia){
 		// logger.info('Progress Event', event);
 		emedia.push('ended',document.getElementById('video').currentTime)
 	}
@@ -265,8 +260,8 @@ function onPlayerProgressEvent(event) {
 function onErrorEvent(event) {
 	// Extract the shaka.util.Error object from the event.
 	onError(event.detail);
-	if(logger){
-		logger.info('Error', event);
+	if(econtrols){
+		econtrols.push('Error', event);
 		// emedia.push('error',document.getElementById('video').currentTime)
 	}
 }
