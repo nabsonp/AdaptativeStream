@@ -111,6 +111,10 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	selected = tracks[quali]
 	endBufferAnt = endBuffer
 	console.warn('VIDEO COM QUALIDADE',quali);
+	if (econtrols) {
+		econtrols.push('troca_qualidade',quali)
+		econtrols.push('bandwidth',selected.bandwidth)
+	}
 	return selected
 }
 
