@@ -2,12 +2,16 @@
 
 // myapp.js
 var historico = []
+var qualidades = []
+var bandas = []
+var buffers = []
+var stalls = []
 var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
 var tempoAnt = 0;
-var carregouVideo = -1;
+var carregouVideo = -1.0;
 var rtt = 0
 var videoGlobal = -1
 var endBufferAnt = -1
@@ -117,6 +121,9 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 		econtrols.push('troca_qualidade',quali)
 		econtrols.push('bandwidth',selected.bandwidth)
 	}
+	qualidades.push(quali)
+	bandas.push(currentBandwidth)
+	buffers.push(buffer)
 	return selected
 }
 
@@ -210,8 +217,9 @@ function initPlayer() {
 		// This runs if the asynchronous load is successful.
 		console.log('The video has now been loaded!');
 		if (econtrols) {
-		econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
+			econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
 		}
+		console.warn('Atraso Inicial:',(videoGlobal.currentTime-carregouVideo));
 
 	}).catch(onError);  // onError is executed if the asynchronous load fails.
 }
@@ -230,6 +238,10 @@ function onPlayerEndedEvent(ended) {
 	} else {
 		console.warn("IMPOSSÍVEL ENVIAR LOGS PARA API.");
 	}
+	console.warn("Histórico de qualidades:",qualidades);
+	console.warn("Histórico de Bandas:",bandas);
+	console.warn("Histórico de Taxa disponível de Buffer:",buffers);
+	console.warn("Tempos em que aconteceram stalls:",stalls);
 }
 
 function onPlayerPlayEvent(play){
@@ -241,6 +253,7 @@ function onPlayerPlayEvent(play){
 
 function onStallEvent(stall){
 	console.error('Video stalled.', stall);
+	stalls.push(videoGlobal.currentTime)
 	if(emedia){
 		emedia.push('stall',videoGlobal.currentTime)
 	}

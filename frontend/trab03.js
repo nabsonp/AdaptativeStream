@@ -10,12 +10,18 @@ exports.environment = {
 
 // myapp.js
 var historico = []
+var qualidades = []
+var bandas = []
+var buffers = []
+var stalls = []
 var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
 var tempoAnt = 0;
+var carregouVideo = -1.0;
 var rtt = 0
+var videoGlobal = -1
 var endBufferAnt = -1
 var manifestUri = 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd';
 // var manifestUri = 'https://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd';
@@ -119,6 +125,13 @@ evaluator.evaluate = (tracks,currentBandwidth,startBuffer,endBuffer) => {
 	selected = tracks[quali]
 	endBufferAnt = endBuffer
 	console.warn('VIDEO COM QUALIDADE',quali);
+	if (econtrols) {
+		econtrols.push('troca_qualidade',quali)
+		econtrols.push('bandwidth',selected.bandwidth)
+	}
+	qualidades.push(quali)
+	bandas.push(currentBandwidth)
+	buffers.push(buffer)
 	return selected
 }
 
@@ -139,6 +152,7 @@ function initApp() {
 function initPlayer() {
 	// Create a Player instance.
 	var video = document.getElementById('video');
+	videoGlobal = video
 	var player = new shaka.Player(video);
 
 	// Attach player to the window to make it easy to access in the JS console.
@@ -146,6 +160,7 @@ function initPlayer() {
 	// Attach evaluator to player to manage useful variables
 	player.evaluator = evaluator;
 
+	carregouVideo = video.currentTime
 
 	// create a timer
 	timer = new shaka.util.Timer(onTimeCollectStats)
@@ -160,7 +175,7 @@ function initPlayer() {
 
 	// // Listen for error events.
 	player.addEventListener('error', onErrorEvent);
-	// player.addEventListener('onstatechange',onStateChangeEvent);
+	// player.addEventListener(	'onstatechange',onStateChangeEvent);
 	// player.addEventListener('buffering', onBufferingEvent);
 
 	// configure player: see https://github.com/google/shaka-player/blob/master/docs/tutorials/config.md
@@ -209,6 +224,10 @@ function initPlayer() {
 	player.load(manifestUri).then(function() {
 		// This runs if the asynchronous load is successful.
 		console.log('The video has now been loaded!');
+		if (econtrols) {
+			econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
+		}
+		console.warn('Atraso Inicial:',(videoGlobal.currentTime-carregouVideo));
 
 	}).catch(onError);  // onError is executed if the asynchronous load fails.
 }
@@ -221,32 +240,37 @@ function wrapup(){
 function onPlayerEndedEvent(ended) {
 	console.log('Video playback ended', ended);
 	if(econtrols && logger){
-		econtrols.push('ended',document.getElementById('video').currentTime)
+		econtrols.push('ended',videoGlobal.currentTime)
 		wrapup()
 		console.warn("LOGS ENVIADOS PARA API.");
 	} else {
 		console.warn("IMPOSSÍVEL ENVIAR LOGS PARA API.");
 	}
+	console.warn("Histórico de qualidades:",qualidades);
+	console.warn("Histórico de Bandas:",bandas);
+	console.warn("Histórico de Taxa disponível de Buffer:",buffers);
+	console.warn("Tempos em que aconteceram stalls:",stalls);
 }
 
 function onPlayerPlayEvent(play){
 	console.log('Video play hit', play);
 	if(econtrols){
-		econtrols.push('play',document.getElementById('video').currentTime)
+		econtrols.push('play',videoGlobal.currentTime)
 	}
 }
 
 function onStallEvent(stall){
 	console.error('Video stalled.', stall);
+	stalls.push(videoGlobal.currentTime)
 	if(emedia){
-		emedia.push('stall',document.getElementById('video').currentTime)
+		emedia.push('stall',videoGlobal.currentTime)
 	}
 }
 
 function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
 	if(econtrols){
-		econtrols.push('ended',document.getElementById('video').currentTime)
+		econtrols.push('ended',videoGlobal.currentTime)
 	}
 }
 
@@ -254,7 +278,7 @@ function onPlayerProgressEvent(event) {
 	console.log('Progress Event: ', event);
 	if(emedia){
 		// logger.info('Progress Event', event);
-		emedia.push('ended',document.getElementById('video').currentTime)
+		emedia.push('ended',videoGlobal.currentTime)
 	}
 	tempoAnt = tempoAtual
 	tempoAtual = event.path[0].currentTime;
