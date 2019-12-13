@@ -9,7 +9,7 @@ var tempoAtual = 0;
 var tempoAnt = 0;
 var rtt = 0
 var endBufferAnt = -1
-var manifestUri = 'http://rdmedia.bbc.co.uk/dash/ondemand/elephants_dream/1/client_manifest-all.mpd';
+var manifestUri = 'https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd';
 // var manifestUri = 'https://yt-dash-mse-test.commondatastorage.googleapis.com/media/car-20120827-manifest.mpd';
 
 // if disabled, you can choose variants using player.selectVariantTrack(track: Variant, clearBuffer: boolean)
@@ -152,7 +152,7 @@ function initPlayer() {
 
 	// // Listen for error events.
 	player.addEventListener('error', onErrorEvent);
-	// player.addEventListener('onstatechange',onStateChangeEvent);
+	// player.addEventListener(	'onstatechange',onStateChangeEvent);
 	// player.addEventListener('buffering', onBufferingEvent);
 
 	// configure player: see https://github.com/google/shaka-player/blob/master/docs/tutorials/config.md
@@ -215,6 +215,9 @@ function onPlayerEndedEvent(ended) {
 	if(econtrols && logger){
 		econtrols.push('ended',document.getElementById('video').currentTime)
 		wrapup()
+		console.warn("LOGS ENVIADOS PARA API.");
+	} else {
+		console.warn("IMPOSSÍVEL ENVIAR LOGS PARA API.");
 	}
 }
 
@@ -246,7 +249,7 @@ function onPlayerProgressEvent(event) {
 		emedia.push('ended',document.getElementById('video').currentTime)
 	}
 	tempoAnt = tempoAtual
-	tempoAtual = event.path[0].currentTime; 
+	tempoAtual = event.path[0].currentTime;
 }
 
 function onErrorEvent(event) {
