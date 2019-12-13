@@ -18,14 +18,14 @@ export class Event implements iEvent{
   }
 
   push(key:string, value:number):void{
-    let isExist = key in this.logs
-    if (isExist){
-      const records:[number]|undefined = this.logs.get(key)
-      if (records !== undefined)
-          records.push(value)
-    }else{
-      this.logs.set(key,[value])
-    }
+     const records:[number]|undefined = this.logs.get(key)
+      if (records !== undefined){
+        records.push(value)
+      }
+      else{
+        this.logs.set(key, [value]);
+      }
+
   }
   dump():Object{
     return this.logs;
