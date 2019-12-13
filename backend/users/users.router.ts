@@ -31,7 +31,7 @@ class UsersRouter extends ModelRouter<User>{
                                       ))
 
     application.get('/users/:id',[authorize('admin','user'),this.validateId,this.findById])
-    application.post('/users',[authorize('admin'),this.save])
+    application.post('/users',[this.save])
     application.put('/users/:id',[authorize('admin'),this.validateId, this.replace])
     application.patch('/users/:id',[authorize('admin'),this.validateId, this.update])
     application.del('/users/:id',[authorize('admin'),this.validateId,this.delete])

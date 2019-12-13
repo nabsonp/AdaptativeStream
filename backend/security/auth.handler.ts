@@ -10,7 +10,7 @@ export const authenticate:restify.RequestHandler = (req, resp, next)=>{
   .then(user=>{
     if (user && user.matches(password)){
       // token
-      const token = jwt.sign({sub:user.email, iss:'logger-api'},environment.security.apiSecret)
+      const token = jwt.sign({sub:user.email, iss:'icc453-logger-api'},environment.security.apiSecret)
       resp.json({nome:user.name, email:user.email, accessToken:token})
       return next(false)
     }else{
