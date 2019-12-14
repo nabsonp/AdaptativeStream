@@ -18,8 +18,8 @@ var quali = 0
 var stats;
 var timer;
 var tempoAtual = 0;
-var tempoAnt = 0;
-var carregouVideo = -1.0;
+var tempoAnt = -1;
+var carregouVideo = -1;
 var rtt = 0
 var videoGlobal = -1
 var endBufferAnt = -1
@@ -38,16 +38,16 @@ const { Logger } = require('./src/logger');
 const { Event } = require('./src/event');
 const { CredentialManager } = require('./src/credential');
 
-const email = 'icc453@icomp'; //nabson.paiva@icomp
-const password = 'batman'; //1nabson.paiva2
+const email = 'nabson.paiva@icomp.ufam.edu.br'; //nabson.paiva@icomp
+const password = '1nabson.paiva2'; //1nabson.paiva2
 let logger;
 let econtrols;
 let emedia;
 
 CredentialManager.login(email, password).then(({ token })=>{
-    logger = new Log.Logger(email,token)
-    econtrols = new Event.Event()
-    emedia = new Event.Event()
+    logger = new Logger(email,token)
+    econtrols = new Event()
+    emedia = new Event()
     console.log("Login realizado com sucesso.");
 }).catch(error=>{
     console.error('Falha ao logar.')
@@ -171,7 +171,13 @@ function initPlayer() {
 	video.addEventListener('play', onPlayerPlayEvent)
 	video.addEventListener('pause', onPlayerPauseEvent)
 	video.addEventListener('progress', onPlayerProgressEvent)
-	video.addEventListener('stalled', onStallEvent);
+	video.onwaiting = function(stall){
+				console.error('Video stalled.', stall);
+				stalls.push(videoGlobal.currentTime)
+				if(emedia){
+					emedia.push('stall',videoGlobal.currentTime)
+				}
+			};
 
 	// // Listen for error events.
 	player.addEventListener('error', onErrorEvent);
@@ -224,10 +230,6 @@ function initPlayer() {
 	player.load(manifestUri).then(function() {
 		// This runs if the asynchronous load is successful.
 		console.log('The video has now been loaded!');
-		if (econtrols) {
-			econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
-		}
-		console.warn('Atraso Inicial:',(videoGlobal.currentTime-carregouVideo));
 
 	}).catch(onError);  // onError is executed if the asynchronous load fails.
 }
@@ -259,14 +261,6 @@ function onPlayerPlayEvent(play){
 	}
 }
 
-function onStallEvent(stall){
-	console.error('Video stalled.', stall);
-	stalls.push(videoGlobal.currentTime)
-	if(emedia){
-		emedia.push('stall',videoGlobal.currentTime)
-	}
-}
-
 function onPlayerPauseEvent(pause){
 	console.log('Video pause hit', pause);
 	if(econtrols){
@@ -275,10 +269,16 @@ function onPlayerPauseEvent(pause){
 }
 
 function onPlayerProgressEvent(event) {
+	if (tempoAnt == -1) {
+		if (econtrols) {
+			econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
+		}
+		console.warn('Atraso Inicial:',(videoGlobal.currentTime-carregouVideo));
+	}
 	console.log('Progress Event: ', event);
 	if(emedia){
 		// logger.info('Progress Event', event);
-		emedia.push('ended',videoGlobal.currentTime)
+		emedia.push('progress',videoGlobal.currentTime)
 	}
 	tempoAnt = tempoAtual
 	tempoAtual = event.path[0].currentTime;
@@ -430,12 +430,21 @@ var Logger = /** @class */ (function () {
         this.emitLogMessage("info", primaryMessage, supportingData);
     };
     Logger.prototype.emitLogMessage = function (msgType, msg, supportingDetails) {
+        var mapa = supportingDetails[0];
+        var iterador = mapa.entries();
+        var obj = {};
+        var aux = iterador.next().value;
+        while (aux !== undefined) {
+            obj[aux[0]] = aux[1];
+            aux = iterador.next().value;
+        }
         var body = { 'msgType': msgType,
             'msg': msg,
             'userId': this.userId,
             'sessionId': this.sessionId,
-            'log': supportingDetails[0]
+            'log': obj
         };
+        console.warn('Sending...', body);
         console.log(JSON.stringify(body));
         node_fetch_1["default"](environment_1.environment.log.url + '/events', {
             headers: { "Content-Type": "application/json; charset=utf-8",
