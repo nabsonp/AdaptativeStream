@@ -11,7 +11,7 @@ var stats;
 var timer;
 var tempoAtual = 0;
 var tempoAnt = -1;
-var carregouVideo = -1;
+var carregouVideo = -1.0;
 var rtt = 0
 var videoGlobal = -1
 var endBufferAnt = -1
@@ -262,10 +262,11 @@ function onPlayerPauseEvent(pause){
 
 function onPlayerProgressEvent(event) {
 	if (tempoAnt == -1) {
+		var atraso = videoGlobal.currentTime-carregouVideo
 		if (econtrols) {
-			econtrols.push('atraso_inicial',(videoGlobal.currentTime-carregouVideo))
+			econtrols.push('atraso_inicial',atraso)
 		}
-		console.warn('Atraso Inicial:',(videoGlobal.currentTime-carregouVideo));
+		console.warn('Atraso Inicial:',atraso);
 	}
 	console.log('Progress Event: ', event);
 	if(emedia){
